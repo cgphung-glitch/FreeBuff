@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FreeBuff Projects</title>
+<style>
+  :root {
+    --panel-green: #0b6b3a;
+    --panel-green-dark: #085229;
+    --panel-green-darker: #06411f;
+    --panel-yellow: #ffe14d;
+    --panel-yellow-dim: #f2cf3a;
+    --page-bg: #eef2ee;
+    --ink: #1d2a22;
+    --ink-soft: #55665c;
+    --card-bg: #ffffff;
+    --ring: 0 0 0 3px rgba(255, 225, 77, 0.45);
+    --radius: 12px;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 18px;
+    min-height: 100vh;
+    background: var(--page-bg);
+    color: var(--ink);
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- Top panel: project menus ---------- */
+
+  .projects-panel {
+    background: var(--panel-green);
+    color: var(--panel-yellow);
+    border-radius: var(--radius);
+    border: 1px solid var(--panel-green-darker);
+    box-shadow: 0 6px 18px rgba(6, 65, 31, 0.22);
+    overflow: visible;
+  }
+
+  .projects-panel__head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+  }
+
+  .projects-panel__title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--panel-yellow);
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+  }
+
+  .toggle-btn {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--panel-green-darker);
+    background: var(--panel-yellow);
+    border: 1px solid var(--panel-yellow-dim);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 0.12s ease, filter 0.12s ease;
+  }
+
+  .toggle-btn:hover { filter: brightness(1.06); }
+  .toggle-btn:active { transform: translateY(1px); }
+  .toggle-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+
+  .toggle-btn__chevron {
+    display: inline-block;
+    font-size: 0.8em;
+    transition: transform 0.2s ease;
+  }
+
+  .projects-panel.is-collapsed .toggle-btn__chevron { transform: rotate(-90deg); }
+
+  .projects-panel__body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0 16px 16px;
+  }
+
+  .projects-panel.is-collapsed .projects-panel__body { display: none; }
+
+  /* ---------- Dropdown menus ---------- */
+
+  .menu {
+    position: relative;
+  }
+
+  .menu__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font: inherit;
+    font-weight: 600;
+    color: var(--panel-yellow);
+    background: var(--panel-green-dark);
+    border: 1px solid rgba(255, 225, 77, 0.55);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .menu__btn:hover { background: var(--panel-green-darker); border-color: var(--panel-yellow); }
+  .menu__btn:focus-visible { outline: none; box-shadow: var(--ring); }
+  .menu__btn[aria-expanded="true"] { background: var(--panel-green-darker); border-color: var(--panel-yellow); }
+
+  .menu__caret { font-size: 0.7em; transition: transform 0.18s ease; }
+  .menu__btn[aria-expanded="true"] .menu__caret { transform: rotate(180deg); }
+
+  .menu__list {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 260px;
+    max-width: min(360px, 88vw);
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    background: #ffffff;
+    color: var(--ink);
+    border: 1px solid #cdd8cf;
+    border-radius: 10px;
+    box-shadow: 0 12px 28px rgba(6, 65, 31, 0.28);
+  }
+
+  .menu__list[hidden] { display: none; }
+
+  .menu__item {
+    display: block;
+    width: 100%;
+    padding: 9px 10px;
+    text-align: left;
+    font: inherit;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    border-radius: 7px;
+    cursor: pointer;
+  }
+
+  .menu__item:hover,
+  .menu__item:focus-visible {
+    background: #eaf5ec;
+    outline: none;
+  }
+
+  .menu__item-title { display: block; font-weight: 600; }
+
+  .menu__item-url {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    overflow-wrap: anywhere;
+  }
+
+  /* ---------- Bottom panel: links ---------- */
+
+  .links-panel {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 240px;
+    padding: 16px;
+    background: var(--card-bg);
+    border: 1px solid #d8e0d9;
+    border-radius: var(--radius);
+    box-shadow: 0 4px 14px rgba(20, 40, 28, 0.07);
+  }
+
+  .links-panel__head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e4eae5;
+  }
+
+  .links-panel__title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--panel-green);
+  }
+
+  .links-panel__count {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: #eef4ef;
+    border-radius: 999px;
+    padding: 3px 10px;
+  }
+
+  .clear-btn {
+    margin-left: auto;
+    padding: 7px 12px;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: #ffffff;
+    border: 1px solid #cdd8cf;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .clear-btn:hover { color: #8a1f1f; border-color: #d9b3b3; background: #fdf5f5; }
+  .clear-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(11, 107, 58, 0.25); }
+  .clear-btn[hidden] { display: none; }
+
+  .hint {
+    margin: 24px 4px;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+
+  .hint[hidden] { display: none; }
+
+  .link-list {
+    margin: 0;
+    padding: 12px 0 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .link-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 14px;
+    background: #fbfdfb;
+    border: 1px solid #dfe7e1;
+    border-left: 4px solid var(--panel-green);
+    border-radius: 10px;
+  }
+
+  .link-card__meta {
+    flex: 1 1 260px;
+    min-width: 0;
+  }
+
+  .link-card__category {
+    display: inline-block;
+    margin-bottom: 2px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--panel-green);
+  }
+
+  .link-card__title {
+    display: block;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .link-card__url {
+    display: block;
+    margin-top: 2px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    overflow-wrap: anywhere;
+  }
+
+  .link-card__actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .link-card__actions a,
+  .link-card__actions button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .link-card__open {
+    color: var(--panel-green-darker);
+    background: var(--panel-yellow);
+    border: 1px solid var(--panel-yellow-dim);
+  }
+
+  .link-card__open:hover { filter: brightness(1.05); }
+
+  .link-card__copy {
+    color: var(--ink-soft);
+    background: #ffffff;
+    border: 1px solid #cdd8cf;
+  }
+
+  .link-card__copy:hover { color: var(--ink); background: #f4f7f4; }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (max-width: 560px) {
+    body { padding: 12px; gap: 14px; }
+    .projects-panel__title { font-size: 1.15rem; }
+    .toggle-btn { margin-left: 0; }
+    .menu { flex: 1 1 100%; }
+    .menu__btn { width: 100%; justify-content: space-between; }
+    .menu__list { width: 100%; max-width: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== TOP PANEL ===================== -->
+<section class="projects-panel" id="projectsPanel" aria-labelledby="projectsTitle">
+  <div class="projects-panel__head">
+    <h1 class="projects-panel__title" id="projectsTitle">FreeBuff Projects</h1>
+    <button
+      type="button"
+      class="toggle-btn"
+      id="panelToggle"
+      aria-expanded="true"
+      aria-controls="projectsBody"
+    >
+      <span class="toggle-btn__chevron" aria-hidden="true">▾</span>
+      <span class="toggle-btn__label">Collapse</span>
+    </button>
+  </div>
+
+  <div class="projects-panel__body" id="projectsBody">
+    <!-- Dropdown menus are generated from the PROJECT_MENUS data below. -->
+  </div>
+</section>
+
+<!-- ===================== BOTTOM PANEL ===================== -->
+<section class="links-panel" aria-labelledby="linksTitle">
+  <div class="links-panel__head">
+    <h2 class="links-panel__title" id="linksTitle">Selected Links</h2>
+    <span class="links-panel__count" id="linkCount">0 links</span>
+    <button type="button" class="clear-btn" id="clearLinks" hidden>Clear all</button>
+  </div>
+
+  <p class="hint" id="linksHint">
+    Choose a menu above to display its URL links here.
+  </p>
+
+  <ul class="link-list" id="linkList"></ul>
+</section>
+
+<p class="visually-hidden" id="liveRegion" role="status" aria-live="polite"></p>
+
+<script>
+  /* ------------------------------------------------------------------
+     Edit this data to change the menus and the links they contain.
+     Each menu: { label, links: [{ title, url }] }
+  ------------------------------------------------------------------ */
+  const PROJECT_MENUS = [
+    {
+      label: "Chemistry",
+      links: [
+        { title: "PubChem Periodic Table", url: "https://pubchem.ncbi.nlm.nih.gov/periodic-table/" },
+        { title: "PubChem Compound Search", url: "https://pubchem.ncbi.nlm.nih.gov/" },
+        { title: "Royal Society of Chemistry", url: "https://www.rsc.org/" }
+      ]
+    },
+    {
+      label: "Chemistry Lab",
+      links: [
+        { title: "ChemCollective Virtual Labs", url: "https://chemcollective.org/vlabs" },
+        { title: "PhET Chemistry Simulations", url: "https://phet.colorado.edu/en/simulations/filter?subjects=chemistry" },
+        { title: "MolView Structure Builder", url: "https://molview.org/" }
+      ]
+    },
+    {
+      label: "Physics",
+      links: [
+        { title: "HyperPhysics", url: "http://hyperphysics.phy-astr.gsu.edu/hbase/hframe.html" },
+        { title: "PhET Physics Simulations", url: "https://phet.colorado.edu/en/simulations/filter?subjects=physics" },
+        { title: "The Physics Classroom", url: "https://www.physicsclassroom.com/" }
+      ]
+    },
+    {
+      label: "Physics Lab",
+      links: [
+        { title: "oPhysics Simulations", url: "https://ophysics.com/" },
+        { title: "Tracker Video Analysis", url: "https://physlets.org/tracker/" },
+        { title: "PhET Motion & Forces Labs", url: "https://phet.colorado.edu/en/simulations/filter?subjects=motion" }
+      ]
+    }
+  ];
+
+  const projectsPanel = document.getElementById("projectsPanel");
+  const panelBody = document.getElementById("projectsBody");
+  const panelToggle = document.getElementById("panelToggle");
+  const toggleLabel = panelToggle.querySelector(".toggle-btn__label");
+  const linkList = document.getElementById("linkList");
+  const linkCount = document.getElementById("linkCount");
+  const linksHint = document.getElementById("linksHint");
+  const clearLinksBtn = document.getElementById("clearLinks");
+  const liveRegion = document.getElementById("liveRegion");
+
+  const selected = []; // { category, title, url }
+
+  /* ---------- Build the dropdown menus ---------- */
+  const menuButtons = [];
+
+  PROJECT_MENUS.forEach((menu, index) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "menu";
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "menu__btn";
+    btn.id = `menuBtn-${index}`;
+    btn.setAttribute("aria-expanded", "false");
+    btn.setAttribute("aria-haspopup", "true");
+    btn.setAttribute("aria-controls", `menuList-${index}`);
+    btn.innerHTML = `<span>${menu.label}</span><span class="menu__caret" aria-hidden="true">▾</span>`;
+
+    const list = document.createElement("ul");
+    list.className = "menu__list";
+    list.id = `menuList-${index}`;
+    list.setAttribute("aria-labelledby", btn.id);
+    list.hidden = true;
+
+    menu.links.forEach((link) => {
+      const item = document.createElement("li");
+      const action = document.createElement("button");
+      action.type = "button";
+      action.className = "menu__item";
+      action.innerHTML =
+        `<span class="menu__item-title"></span><span class="menu__item-url"></span>`;
+      action.querySelector(".menu__item-title").textContent = link.title;
+      action.querySelector(".menu__item-url").textContent = link.url;
+      action.addEventListener("click", () => {
+        showLink(menu.label, link.title, link.url);
+        closeAllMenus();
+        btn.focus();
+      });
+      item.appendChild(action);
+      list.appendChild(item);
+    });
+
+    btn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const isOpen = btn.getAttribute("aria-expanded") === "true";
+      closeAllMenus();
+      if (!isOpen) openMenu(btn, list);
+    });
+
+    // Keyboard: open with ArrowDown, close with Escape, arrow through items.
+    btn.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+        if (btn.getAttribute("aria-expanded") !== "true") {
+          event.preventDefault();
+          closeAllMenus();
+          openMenu(btn, list);
+          list.querySelector(".menu__item")?.focus();
+        }
+      }
+    });
+
+    list.addEventListener("keydown", (event) => {
+      const items = Array.from(list.querySelectorAll(".menu__item"));
+      const current = items.indexOf(document.activeElement);
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        items[(current + 1) % items.length]?.focus();
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        items[(current - 1 + items.length) % items.length]?.focus();
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        closeAllMenus();
+        btn.focus();
+      } else if (event.key === "Tab") {
+        closeAllMenus();
+      }
+    });
+
+    wrapper.append(btn, list);
+    panelBody.appendChild(wrapper);
+    menuButtons.push({ btn, list });
+  });
+
+  function openMenu(btn, list) {
+    btn.setAttribute("aria-expanded", "true");
+    list.hidden = false;
+  }
+
+  function closeAllMenus() {
+    menuButtons.forEach(({ btn, list }) => {
+      btn.setAttribute("aria-expanded", "false");
+      list.hidden = true;
+    });
+  }
+
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".menu")) closeAllMenus();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeAllMenus();
+  });
+
+  /* ---------- Collapse / expand the top panel ---------- */
+  panelToggle.addEventListener("click", () => {
+    const collapsed = projectsPanel.classList.toggle("is-collapsed");
+    panelToggle.setAttribute("aria-expanded", String(!collapsed));
+    toggleLabel.textContent = collapsed ? "Expand" : "Collapse";
+    panelBody.inert = collapsed;
+    if (collapsed) closeAllMenus();
+    projectsPanel.querySelector(".toggle-btn__chevron").setAttribute(
+      "aria-label",
+      collapsed ? "Panel collapsed" : "Panel expanded"
+    );
+  });
+
+  /* ---------- Render links in the bottom panel ---------- */
+  function showLink(category, title, url) {
+    const duplicate = selected.some((entry) => entry.url === url);
+    if (duplicate) {
+      // Move an existing entry to the top instead of adding it twice.
+      const existing = selected.findIndex((entry) => entry.url === url);
+      selected.unshift(selected.splice(existing, 1)[0]);
+    } else {
+      selected.unshift({ category, title, url });
+    }
+    renderLinks();
+    liveRegion.textContent = `${title} added to the link panel.`;
+  }
+
+  function removeLink(url) {
+    const index = selected.findIndex((entry) => entry.url === url);
+    if (index !== -1) selected.splice(index, 1);
+    renderLinks();
+  }
+
+  function renderLinks() {
+    linkList.textContent = "";
+
+    const hasLinks = selected.length > 0;
+    linksHint.hidden = hasLinks;
+    clearLinksBtn.hidden = !hasLinks;
+    linkCount.textContent = `${selected.length} ${selected.length === 1 ? "link" : "links"}`;
+
+    selected.forEach((entry) => {
+      const item = document.createElement("li");
+      item.className = "link-card";
+
+      const meta = document.createElement("div");
+      meta.className = "link-card__meta";
+
+      const category = document.createElement("span");
+      category.className = "link-card__category";
+      category.textContent = entry.category;
+
+      const title = document.createElement("span");
+      title.className = "link-card__title";
+      title.textContent = entry.title;
+
+      const url = document.createElement("span");
+      url.className = "link-card__url";
+      url.textContent = entry.url;
+
+      meta.append(category, title, url);
+
+      const actions = document.createElement("div");
+      actions.className = "link-card__actions";
+
+      const open = document.createElement("a");
+      open.className = "link-card__open";
+      open.href = entry.url;
+      open.target = "_blank";
+      open.rel = "noopener noreferrer";
+      open.textContent = "Open ↗";
+      open.setAttribute("aria-label", `Open ${entry.title} in a new tab`);
+
+      const copy = document.createElement("button");
+      copy.type = "button";
+      copy.className = "link-card__copy";
+      copy.textContent = "Copy";
+      copy.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(entry.url);
+          copy.textContent = "Copied";
+          liveRegion.textContent = `${entry.title} URL copied.`;
+          setTimeout(() => { copy.textContent = "Copy"; }, 1400);
+        } catch (error) {
+          // Clipboard access can be blocked; select the text instead.
+          const range = document.createRange();
+          range.selectNodeContents(url);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+          liveRegion.textContent = "URL selected — press Ctrl+C to copy.";
+        }
+      });
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "link-card__copy";
+      remove.textContent = "✕";
+      remove.setAttribute("aria-label", `Remove ${entry.title}`);
+      remove.addEventListener("click", () => removeLink(entry.url));
+
+      actions.append(open, copy, remove);
+      item.append(meta, actions);
+      linkList.appendChild(item);
+    });
+  }
+
+  clearLinksBtn.addEventListener("click", () => {
+    selected.length = 0;
+    renderLinks();
+    liveRegion.textContent = "All links cleared.";
+  });
+
+  renderLinks();
+</script>
+</body>
+</html>
